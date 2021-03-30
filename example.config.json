@@ -1,0 +1,15 @@
+{
+  "ipApi": "https://api.ipify.org/",
+  "updateInterval": 300,
+  "randomInterval": true,
+  "records": [{
+    "domain": "foo.bar",
+    "subDomain": "foo.foo.bar",
+    "recordId": 0,
+    "ttl": 300
+  }],
+  "ovhCredentials": {
+    "applicationKey": "",
+    "apiUrl": "https://ca.api.ovh.com/1.0"
+  }
+}
