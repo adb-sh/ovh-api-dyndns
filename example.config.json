@@ -10,6 +10,7 @@
   }],
   "ovhCredentials": {
     "applicationKey": "",
+    "applicationSecret": "",
     "apiUrl": "https://ca.api.ovh.com/1.0"
   }
 }

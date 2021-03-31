@@ -11,6 +11,7 @@
   "author": "adb",
   "license": "",
   "dependencies": {
+    "sha1": "^1.1.1",
     "superagent": "^6.1.0"
   },
   "devDependencies": {

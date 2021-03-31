@@ -1,37 +1,73 @@
 import rest from 'superagent';
+import sha1 from 'sha1';
+import readline from 'readline';
 
 export class OvhApi{
-  async constructor({credentials}){
+  constructor({credentials}){
     this.credentials = credentials;
-    this.baseUrl = credentials.apiUrl;
-    this.apiToken = await this.getToken({applicationKey: credentials.applicationKey});
+    this.baseUrl = this.credentials.apiUrl;
+    this.methods = {get: 'GET', post: 'POST', put: 'PUT', delete: 'DELETE', path: 'PATCH'};
+    this.rl = readline.createInterface({
+      input: process.stdin
+    });
   }
 
   async sendRequest({
     path,
-    obj={},
-    method=rest=>rest.get,
+    body={},
+    getMethod=rest=>rest.get,
     header={accept: 'json'}
   }){
-    let request = method(rest)(`${this.baseUrl}${path}`);
+    console.log(`api request at ${path} =>`);
+    console.log(header);
+    console.log(body);
+    let request = getMethod(rest)(`${this.baseUrl}${path}`);
     await Object.keys(header).forEach(key => request.set(key, header[key]));
-    return await request.send(obj).then(res => {
+    return await request.send(body).then(res => {
+      console.log('api response =>');
+      console.log(JSON.parse(res.text));
       return JSON.parse(res.text);
     }).catch(err => {
-      console.log(err);
+      console.error(err);
       return false;
     });
   }
 
-  async getToken({applicationKey}){
-    return await this.sendRequest({
+  async sendSignedRequest({
+    path,
+    body={},
+    getMethod=rest=>rest.get,
+    header={accept: 'json'}
+  }){
+    if (!this.credentials.consumerKey) await this.getConsumerKey();
+    let timestamp = await this.getApiTime();
+    header['X-Ovh-Timestamp'] = timestamp;
+    header['X-Ovh-Signature'] = await this.getSignature({
+      method: getMethod(this.methods),
+      query: this.baseUrl+path,
+      body, timestamp
+    });
+    header['X-Ovh-Consumer'] = this.credentials.consumerKey;
+    await this.sendRequest({path, body, getMethod, header});
+  }
+
+  async getSignature({method = 'GET', query, body='', timestamp}){
+    return '$1$' + sha1(
+      this.credentials.applicationSecret+'+'+
+      this.credentials.consumerKey+'+'+
+      method+'+'+query+'+'+body+'+'+timestamp
+    );
+  }
+
+  async getConsumerKey(){
+    let res = await this.sendRequest({
       path: '/auth/credential',
-      method: rest=>rest.post,
+      getMethod: rest=>rest.post,
       header: {
-        'X-Ovh-Application': applicationKey,
+        'X-Ovh-Application': this.credentials.applicationKey,
         'Content-type': 'application/json'
       },
-      obj: {
+      body: {
         accessRules: [
           {method: 'GET', path: '/domain/zone/*'},
           {method: 'POST', path: '/domain/zone/*'},
@@ -39,17 +75,28 @@ export class OvhApi{
         ]
       }
     });
+    this.credentials.consumerKey = res.consumerKey;
+    console.log('please validate on ovh site:');
+    console.log(res.validationUrl);
+    await this.rl.question('continue? (Y/n)', () => {
+      switch (input) {
+        case 'n': process.exit(); break;
+        default: return res.consumerKey;
+      }
+    });
   }
 
   async updateRecord({domain, subDomain, recordId, target, ttl = 3600}){
-    return await this.sendRequest({
+    return await this.sendSignedRequest({
       path: `/domain/zone/${domain}/record/${recordId}`,
-      method: rest=>rest.put,
-      obj: {
-        subDomain,
-        target,
-        ttl
-      }
+      getMethod: rest=>rest.put,
+      body: {subDomain, target, ttl}
+    });
+  }
+
+  async getApiTime(){
+    return await this.sendRequest({
+      path: '/auth/time'
     });
   }
 }
