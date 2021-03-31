@@ -18,14 +18,15 @@ export class DynDnsBot{
     });
   }
   setInterval(seconds = this.config.updateInterval, random = this.config.randomInterval){
-    this.interval = setInterval(random
-      ?setTimeout(this.update, Math.random()*seconds*1000)
-      :this.update,
-    seconds*1000);
+    let handler = (callback) => random
+      ?()=>setTimeout(callback, Math.random()*seconds*1000)
+      :callback;
+    this.interval = setInterval(handler(this.update), seconds*1000);
+    this.update();
   }
   async getIp(){
-    return await rest.get(this.config.ipApi).then(newIp => {
-      return newIp;
+    return await rest.get(this.config.ipApi).then(res => {
+      return JSON.parse(res.text);
     }).catch(console.error);
   }
 }
