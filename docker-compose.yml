@@ -1,0 +1,13 @@
+version: '3'
+services:
+  node:
+    image: node:alpine
+    container_name: ovh-api-dyndns
+    restart: always
+    volumes:
+      - ./:/home/node/app/
+      - ./node_logs/:/var/log/
+    working_dir: /home/node/app/
+    environment:
+      - NODE_ENV=production
+    command: sh -c 'npm i && nodejs index.js'
