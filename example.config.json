@@ -11,6 +11,7 @@
   "ovhCredentials": {
     "applicationKey": "",
     "applicationSecret": "",
+    "applicationName": "ovh-api-dyndns",
     "apiUrl": "https://ca.api.ovh.com/1.0"
   }
 }

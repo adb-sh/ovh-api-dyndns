@@ -48,6 +48,7 @@ export class OvhApi{
       body, timestamp
     });
     header['X-Ovh-Consumer'] = this.credentials.consumerKey;
+    header['X-Ovh-Application'] = this.credentials.applicationName;
     await this.sendRequest({path, body, getMethod, header});
   }
 
@@ -78,7 +79,7 @@ export class OvhApi{
     this.credentials.consumerKey = res.consumerKey;
     console.log('please validate on ovh site:');
     console.log(res.validationUrl);
-    await this.rl.question('continue? (Y/n)', () => {
+    await this.rl.question('continue? (Y/n)', (input) => {
       switch (input) {
         case 'n': process.exit(); break;
         default: return res.consumerKey;
