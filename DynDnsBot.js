@@ -8,7 +8,7 @@ export class DynDnsBot{
     this.lastIp = null;
   }
 
-  async update() {
+  async update(){
     let newIp = await this.getIp();
     if (newIp === this.lastIp) return;
     this.lastIp = newIp;
@@ -18,15 +18,15 @@ export class DynDnsBot{
     });
   }
   setInterval(seconds = this.config.updateInterval, random = this.config.randomInterval){
-    let handler = (callback) => random
-      ?()=>setTimeout(callback, Math.random()*seconds*1000)
-      :callback;
-    this.interval = setInterval(handler(this.update), seconds*1000);
+    let handler = random
+      ? (callback) => setTimeout(callback, Math.random()*seconds*1000)
+      : (callback) => callback();
+    this.interval = setInterval(handler(()=>this.update()), seconds*1000);
     this.update();
   }
   async getIp(){
     return await rest.get(this.config.ipApi).then(res => {
-      return JSON.parse(res.text);
+      return res.text;
     }).catch(console.error);
   }
 }
