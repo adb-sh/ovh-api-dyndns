@@ -19,9 +19,9 @@ export class DynDnsBot{
   }
   setInterval(seconds = this.config.updateInterval, random = this.config.randomInterval){
     let handler = random
-      ? (callback) => setTimeout(callback, Math.random()*seconds*1000)
-      : (callback) => callback();
-    this.interval = setInterval(handler(()=>this.update()), seconds*1000);
+      ? () => setTimeout(()=>this.update(), Math.random()*seconds*1000)
+      : () => this.update();
+    this.interval = setInterval(handler, seconds*1000);
     this.update();
   }
   async getIp(){
