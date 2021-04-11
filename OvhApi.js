@@ -45,11 +45,12 @@ export class OvhApi{
     header['X-Ovh-Signature'] = await this.getSignature({
       method: getMethod(this.methods),
       query: this.baseUrl+path,
-      body, timestamp
+      body: JSON.stringify(body),
+      timestamp
     });
     header['X-Ovh-Consumer'] = this.credentials.consumerKey;
-    header['X-Ovh-Application'] = this.credentials.applicationName;
-    await this.sendRequest({path, body, getMethod, header});
+    header['X-Ovh-Application'] = this.credentials.applicationKey;
+    return await this.sendRequest({path, body, getMethod, header});
   }
 
   async getSignature({method = 'GET', query, body='', timestamp}){
@@ -87,11 +88,11 @@ export class OvhApi{
     });
   }
 
-  async updateRecord({domain, subDomain, recordId, target, ttl = 3600}){
+  async updateRecord({zone, subDomain, id, target, ttl = 3600, fieldType = 'A'}, domain = zone){
     return await this.sendSignedRequest({
-      path: `/domain/zone/${domain}/record/${recordId}`,
+      path: `/domain/zone/${domain}/record/${id}`,
       getMethod: rest=>rest.put,
-      body: {subDomain, target, ttl}
+      body: {subDomain, target, ttl, fieldType}
     });
   }
 

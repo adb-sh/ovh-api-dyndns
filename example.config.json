@@ -2,12 +2,18 @@
   "ipApi": "https://api.ipify.org/",
   "updateInterval": 300,
   "randomInterval": true,
-  "records": [{
-    "domain": "foo.bar",
-    "subDomain": "foo.foo.bar",
-    "recordId": 0,
-    "ttl": 300
-  }],
+  "records": {
+    "foo.bar": [
+      {
+        "fieldType": "A",
+        "subDomain": "sub",
+        "id": 0,
+        "target": "127.0.0.1",
+        "ttl": 300,
+        "zone": "foo.bar"
+      }
+    ]
+  },
   "ovhCredentials": {
     "applicationKey": "",
     "applicationSecret": "",

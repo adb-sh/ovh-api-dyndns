@@ -12,9 +12,11 @@ export class DynDnsBot{
     let newIp = await this.getIp();
     if (newIp === this.lastIp) return;
     this.lastIp = newIp;
-    this.config.records.forEach(record => {
-      record.target = newIp;
-      this.dns.updateRecord(record);
+    Object.keys(this.config.records).forEach(domain => {
+      this.config.records[domain].forEach(record => {
+        record.target = newIp;
+        this.dns.updateRecord(record, domain);
+      })
     });
   }
   setInterval(seconds = this.config.updateInterval, random = this.config.randomInterval){
