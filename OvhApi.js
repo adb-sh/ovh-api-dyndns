@@ -3,8 +3,9 @@ import sha1 from 'sha1';
 import readline from 'readline';
 
 export class OvhApi{
-  constructor({credentials}){
+  constructor({credentials, logs = true}){
     this.credentials = credentials;
+    this.log = logs ? console.log : ()=>{};
     this.baseUrl = this.credentials.apiUrl;
     this.methods = {get: 'GET', post: 'POST', put: 'PUT', delete: 'DELETE', path: 'PATCH'};
     this.rl = readline.createInterface({
@@ -18,17 +19,17 @@ export class OvhApi{
     getMethod=rest=>rest.get,
     header={accept: 'json'}
   }){
-    console.log(`api request at ${path} =>`);
-    console.log(header);
-    console.log(body);
+    this.log(`api request at ${path} =>`);
+    this.log(header);
+    this.log(body);
     let request = getMethod(rest)(`${this.baseUrl}${path}`);
     await Object.keys(header).forEach(key => request.set(key, header[key]));
     return await request.send(body).then(res => {
-      console.log('api response =>');
-      console.log(JSON.parse(res.text));
+      this.log('api response =>');
+      this.log(JSON.parse(res.text));
       return JSON.parse(res.text);
     }).catch(err => {
-      console.error(err);
+      console.error(err.response.text || err);
       return false;
     });
   }
@@ -99,6 +100,22 @@ export class OvhApi{
   async getApiTime(){
     return await this.sendRequest({
       path: '/auth/time'
+    });
+  }
+
+  async getRecords({domain, fieldType = undefined, subDomain = undefined}){
+    return await this.sendSignedRequest({
+      path: `/domain/zone/${domain}/record`,
+      body: {
+        fieldType,
+        subDomain
+      }
+    });
+  }
+
+  async getRecord({domain, id}){
+    return await this.sendSignedRequest({
+      path: `/domain/zone/${domain}/record/${id}`
     });
   }
 }
