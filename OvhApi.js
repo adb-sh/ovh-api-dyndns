@@ -93,7 +93,7 @@ export class OvhApi{
     return await this.sendSignedRequest({
       path: `/domain/zone/${domain}/record/${id}`,
       getMethod: rest=>rest.put,
-      body: {subDomain, target, ttl, fieldType}
+      body: {subDomain, target, ttl}
     });
   }
 
@@ -116,6 +116,13 @@ export class OvhApi{
   async getRecord({domain, id}){
     return await this.sendSignedRequest({
       path: `/domain/zone/${domain}/record/${id}`
+    });
+  }
+
+  async refreshZone(zone){
+    return await this.sendSignedRequest({
+      path: `/domain/zone/${zone}/refresh`,
+      getMethod: rest=>rest.post
     });
   }
 }

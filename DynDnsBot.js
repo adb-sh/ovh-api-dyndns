@@ -15,7 +15,7 @@ export class DynDnsBot{
     Object.keys(this.config.records).forEach(domain => {
       this.config.records[domain].forEach(record => {
         record.target = newIp;
-        this.dns.updateRecord(record, domain);
+        this.dns.updateRecord(record, domain).then(()=>this.dns.refreshZone(domain));
       })
     });
   }
