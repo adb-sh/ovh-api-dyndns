@@ -38,10 +38,10 @@ export class OvhApi{
     path,
     body={},
     getMethod=rest=>rest.get,
-    header={accept: 'json'}
+    header={accept: 'json'},
+    timestamp = (Date.now()/1000).toFixed()
   }){
     if (!this.credentials.consumerKey) await this.getConsumerKey();
-    let timestamp = await this.getApiTime();
     header['X-Ovh-Timestamp'] = timestamp;
     header['X-Ovh-Signature'] = await this.getSignature({
       method: getMethod(this.methods),

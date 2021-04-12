@@ -14,6 +14,13 @@ if (!store.ovhCredentials.applicationKey || !store.ovhCredentials.applicationSec
 
 let dns = new OvhApi({credentials: store.ovhCredentials, logs: false});
 
+let apiTime = await dns.getApiTime();
+let serverTime = (Date.now()/1000).toFixed();
+if (apiTime > serverTime+1 || apiTime < serverTime-1){
+  console.error(`serverTime (${serverTime}) and apiTIme (${apiTime}) are different`);
+  process.exit();
+}
+
 if (!store.ovhCredentials.consumerKey) await dns.getConsumerKey();
 
 console.log('list all available records for defined domains =>');
