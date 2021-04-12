@@ -5,7 +5,7 @@ import readline from 'readline';
 export class OvhApi{
   constructor({credentials, logs = true}){
     this.credentials = credentials;
-    this.log = logs ? console.log : ()=>{};
+    this.log = logs ? this.requestLogs : ()=>{};
     this.baseUrl = this.credentials.apiUrl;
     this.methods = {get: 'GET', post: 'POST', put: 'PUT', delete: 'DELETE', path: 'PATCH'};
     this.rl = readline.createInterface({
@@ -19,19 +19,26 @@ export class OvhApi{
     getMethod=rest=>rest.get,
     header={accept: 'json'}
   }){
-    this.log(`api request at ${path} =>`);
-    this.log(header);
-    this.log(body);
     let request = getMethod(rest)(`${this.baseUrl}${path}`);
     await Object.keys(header).forEach(key => request.set(key, header[key]));
     return await request.send(body).then(res => {
-      this.log('api response =>');
-      this.log(JSON.parse(res.text));
+      this.log({path, header, body, res: JSON.parse(res.text)});
       return JSON.parse(res.text);
     }).catch(err => {
-      console.error(err.response.text || err);
+      this.log({path, header, body, err: err?.response?.text});
       return false;
     });
+  }
+
+  requestLogs({path, header, body, res, err}){
+    console.log(`api request at ${path} =>`);
+    console.log('header:');
+    console.log(header);
+    console.log('body:')
+    console.log(body);
+    console.log('api response =>');
+    if (res) console.log(res);
+    if (err) console.error(err)
   }
 
   async sendSignedRequest({
