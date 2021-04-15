@@ -31,14 +31,13 @@ export class OvhApi{
   }
 
   requestLogs({path, header, body, res, err}){
-    console.log(`api request at ${path} =>`);
-    console.log('header:');
-    console.log(header);
-    console.log('body:')
-    console.log(body);
-    console.log('api response =>');
-    if (res) console.log(res);
-    if (err) console.error(err)
+    console.log(
+      `\napi request at ${path} =>`,
+      'header:', header,
+      'body:', body,
+      '\napi response =>'
+    );
+    console.assert(res) || console.error(err);
   }
 
   async sendSignedRequest({
@@ -48,20 +47,19 @@ export class OvhApi{
     header={accept: 'json'},
     timestamp = (Date.now()/1000).toFixed()
   }){
-    if (!this.credentials.consumerKey) await this.getConsumerKey();
     header['X-Ovh-Timestamp'] = timestamp;
-    header['X-Ovh-Signature'] = await this.getSignature({
+    header['X-Ovh-Consumer'] = this.credentials.consumerKey || await this.getConsumerKey();
+    header['X-Ovh-Application'] = this.credentials.applicationKey;
+    header['X-Ovh-Signature'] = this.getSignature({
       method: getMethod(this.methods),
       query: this.baseUrl+path,
       body: JSON.stringify(body),
       timestamp
     });
-    header['X-Ovh-Consumer'] = this.credentials.consumerKey;
-    header['X-Ovh-Application'] = this.credentials.applicationKey;
     return await this.sendRequest({path, body, getMethod, header});
   }
 
-  async getSignature({method = 'GET', query, body='', timestamp}){
+  getSignature({method = 'GET', query, body='', timestamp}){
     return '$1$' + sha1(
       this.credentials.applicationSecret+'+'+
       this.credentials.consumerKey+'+'+
@@ -88,7 +86,7 @@ export class OvhApi{
     this.credentials.consumerKey = res.consumerKey;
     console.log('please validate on ovh site:');
     console.log(res.validationUrl);
-    await this.rl.question('continue? (Y/n)', (input) => {
+    return this.rl.question('continue? (Y/n)', async (input) => {
       switch (input) {
         case 'n': process.exit(); break;
         default: return res.consumerKey;
